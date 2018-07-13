@@ -54,12 +54,14 @@
     (.detach vm)
     true))
 
-(defonce ^:private jamm-agent-loaded (load-jamm-agent))
+(def ^:private jamm-agent-loaded (delay (load-jamm-agent)))
 
 ;;;; Public API
 
 (def ^:private memory-meter
-  (.newInstance (Class/forName "org.github.jamm.MemoryMeter")))
+  (delay
+   @jamm-agent-loaded
+   (.newInstance (Class/forName "org.github.jamm.MemoryMeter"))))
 
 (defn- convert-to-human-readable
   "Taken from http://programming.guide/java/formatting-byte-size-to-human-readable-format.html."
@@ -84,7 +86,7 @@
   :bytes   - if true, return a number of bytes instead of a string
   :meter   - custom org.github.jamm.MemoryMeter object"
   [object & {:keys [debug shallow bytes meter]}]
-  (let [m (or meter memory-meter)
+  (let [m (or meter @memory-meter)
         m (cond (integer? debug) (.enableDebug m debug)
                 debug (.enableDebug m)
                 :else m)
