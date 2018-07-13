@@ -1,9 +1,8 @@
 (ns clj-memory-meter.core
   (:require [clojure.java.io :as io])
-  (:import java.io.File
-           java.lang.management.ManagementFactory
-           [java.net URL URLClassLoader]
-           java.net.URL))
+  (:import clojure.lang.DynamicClassLoader
+           java.io.File
+           java.lang.management.ManagementFactory))
 
 ;;;; Agent JAR unpacking
 
@@ -19,13 +18,21 @@
 ;;;; Agent loading
 
 (defonce ^:private tools-jar-classloader
-  (let [file (io/file (System/getProperty "java.home"))
-        file (if (.equalsIgnoreCase (.getName file) "jre")
-               (.getParentFile file)
-               file)
-        file (io/file file "lib" "tools.jar")
-        urls (into-array URL [(io/as-url file)])]
-    (URLClassLoader/newInstance urls)))
+  ;; First, find top-level Clojure classloader.
+  (let [^DynamicClassLoader loader
+        (loop [loader (.getContextClassLoader (Thread/currentThread))]
+          (let [parent (.getParent loader)]
+            (if (instance? DynamicClassLoader parent)
+              (recur parent)
+              loader)))]
+    ;; Loader found, add tools.jar to it
+    (let [file (io/file (System/getProperty "java.home"))
+          file (if (.equalsIgnoreCase (.getName file) "jre")
+                 (.getParentFile file)
+                 file)
+          file (io/file file "lib" "tools.jar")]
+      (.addURL loader (io/as-url file)))
+    loader))
 
 (defn- get-self-pid
   "Returns the process ID of the current JVM process."
