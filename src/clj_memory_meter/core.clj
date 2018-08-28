@@ -17,23 +17,30 @@
 
 ;;;; Agent loading
 
+(defn- get-dynamic-classloader
+  []
+  (loop [loader (.getContextClassLoader (Thread/currentThread))]
+    (let [parent (.getParent loader)]
+      (if (instance? DynamicClassLoader parent)
+        (recur parent)
+        loader))))
+
+(defn- add-tools-jar-to-classloader!
+  [^DynamicClassLoader loader]
+  (let [file (io/file (System/getProperty "java.home"))
+        file (if (.equalsIgnoreCase (.getName file) "jre")
+               (.getParentFile file)
+               file)
+        file (io/file file "lib" "tools.jar")]
+    (.addURL loader (io/as-url file))))
+
 (defonce ^:private tools-jar-classloader
   ;; First, find top-level Clojure classloader.
   (delay
    (try
-     (let [^DynamicClassLoader loader
-          (loop [loader (.getContextClassLoader (Thread/currentThread))]
-            (let [parent (.getParent loader)]
-              (if (instance? DynamicClassLoader parent)
-                (recur parent)
-                loader)))]
+     (let [^DynamicClassLoader loader (get-dynamic-classloader)]
       ;; Loader found, add tools.jar to it
-      (let [file (io/file (System/getProperty "java.home"))
-            file (if (.equalsIgnoreCase (.getName file) "jre")
-                   (.getParentFile file)
-                   file)
-            file (io/file file "lib" "tools.jar")]
-        (.addURL loader (io/as-url file)))
+      (add-tools-jar-to-classloader! loader)
       loader)
      (catch Exception e
        (throw (ex-info "Could not prepare the classloader."
