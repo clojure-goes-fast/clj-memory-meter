@@ -1,8 +1,8 @@
 (ns clj-memory-meter.core
   (:require [clojure.java.io :as io])
-  (:import clojure.lang.DynamicClassLoader
-           java.io.File
-           java.lang.management.ManagementFactory))
+  (:import java.io.File
+           java.lang.management.ManagementFactory
+           java.net.URLClassLoader))
 
 ;;;; Agent JAR unpacking
 
@@ -17,35 +17,55 @@
 
 ;;;; Agent loading
 
-(defn- get-dynamic-classloader
-  []
-  (loop [loader (.getContextClassLoader (Thread/currentThread))]
-    (let [parent (.getParent loader)]
-      (if (instance? DynamicClassLoader parent)
-        (recur parent)
-        loader))))
-
-(defn- add-tools-jar-to-classloader!
-  [^DynamicClassLoader loader]
+(defn- tools-jar-url []
   (let [file (io/file (System/getProperty "java.home"))
         file (if (.equalsIgnoreCase (.getName file) "jre")
                (.getParentFile file)
                file)
         file (io/file file "lib" "tools.jar")]
-    (.addURL loader (io/as-url file))))
+    (io/as-url file)))
 
-(defonce ^:private tools-jar-classloader
-  ;; First, find top-level Clojure classloader.
+(defn- add-url-to-classloader-reflective
+  "This is needed for cases when there is no DynamicClassLoader in the classloader
+  chain (i.e., the env is not a REPL). Note that this will throw warning on Java
+  9/10 and will probably stop working at all from Java 11."
+  [^URLClassLoader loader, url]
+  (doto (.getDeclaredMethod URLClassLoader "addURL" (into-array Class [java.net.URL]))
+    (.setAccessible true)
+    (.invoke loader (object-array [url]))))
+
+(defn- get-classloader
+  "Find the uppermost DynamicClassLoader in the chain. However, if the immediate
+  context classloader is not a DynamicClassLoader, it means we are not run in
+  the REPL environment, and have to use reflection to patch this classloader.
+
+  Return a tuple of [classloader is-it-dynamic?]."
+  []
+  (let [dynamic-cl?
+        #(#{"clojure.lang.DynamicClassLoader" "boot.AddableClassLoader"}
+          (.getName (class %)))
+
+        ctx-loader (.getContextClassLoader (Thread/currentThread))]
+    (if (dynamic-cl? ctx-loader)
+      ;; The chain starts with a dynamic classloader, walk the chain up to find
+      ;; the uppermost one.
+      (loop [loader ctx-loader]
+        (let [parent (.getParent loader)]
+          (if (dynamic-cl? parent)
+            (recur parent)
+            [loader true])))
+
+      ;; Otherwise, return the immediate classloader and tell it's not dynamic.
+      [ctx-loader false])))
+
+(def ^:private tools-jar-classloader
   (delay
-   (try
-     (let [^DynamicClassLoader loader (get-dynamic-classloader)]
-      ;; Loader found, add tools.jar to it
-      (add-tools-jar-to-classloader! loader)
-      loader)
-     (catch Exception e
-       (throw (ex-info "Could not prepare the classloader."
-                       {:hint "If you're currently requiring clj-memory-meter.core in your (ns) form, try removing it from there and executing (require 'clj-memory-meter.core) manually after everything is loaded."}
-                       e))))))
+   (let [tools-jar (tools-jar-url)
+         [loader dynamic?] (get-classloader)]
+     (if dynamic?
+       (.addURL loader tools-jar)
+       (add-url-to-classloader-reflective loader tools-jar))
+     loader)))
 
 (defn- get-self-pid
   "Returns the process ID of the current JVM process."
