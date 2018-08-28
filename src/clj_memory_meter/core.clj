@@ -19,20 +19,21 @@
 
 (defonce ^:private tools-jar-classloader
   ;; First, find top-level Clojure classloader.
-  (let [^DynamicClassLoader loader
-        (loop [loader (.getContextClassLoader (Thread/currentThread))]
-          (let [parent (.getParent loader)]
-            (if (instance? DynamicClassLoader parent)
-              (recur parent)
-              loader)))]
-    ;; Loader found, add tools.jar to it
-    (let [file (io/file (System/getProperty "java.home"))
-          file (if (.equalsIgnoreCase (.getName file) "jre")
-                 (.getParentFile file)
-                 file)
-          file (io/file file "lib" "tools.jar")]
-      (.addURL loader (io/as-url file)))
-    loader))
+  (delay
+   (let [^DynamicClassLoader loader
+         (loop [loader (.getContextClassLoader (Thread/currentThread))]
+           (let [parent (.getParent loader)]
+             (if (instance? DynamicClassLoader parent)
+               (recur parent)
+               loader)))]
+     ;; Loader found, add tools.jar to it
+     (let [file (io/file (System/getProperty "java.home"))
+           file (if (.equalsIgnoreCase (.getName file) "jre")
+                  (.getParentFile file)
+                  file)
+           file (io/file file "lib" "tools.jar")]
+       (.addURL loader (io/as-url file)))
+     loader)))
 
 (defn- get-self-pid
   "Returns the process ID of the current JVM process."
@@ -44,7 +45,7 @@
 
 (defn- mk-vm [pid]
   (let [vm-class (Class/forName "com.sun.tools.attach.VirtualMachine"
-                                false tools-jar-classloader)
+                                false @tools-jar-classloader)
         method (.getDeclaredMethod vm-class "attach" (into-array Class [String]))]
     (.invoke method nil (object-array [pid]))))
 
