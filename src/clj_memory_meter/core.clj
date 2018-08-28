@@ -17,22 +17,35 @@
 
 ;;;; Agent loading
 
+(defn- get-dynamic-classloader
+  []
+  (loop [loader (.getContextClassLoader (Thread/currentThread))]
+    (let [parent (.getParent loader)]
+      (if (instance? DynamicClassLoader parent)
+        (recur parent)
+        loader))))
+
+(defn- add-tools-jar-to-classloader!
+  [^DynamicClassLoader loader]
+  (let [file (io/file (System/getProperty "java.home"))
+        file (if (.equalsIgnoreCase (.getName file) "jre")
+               (.getParentFile file)
+               file)
+        file (io/file file "lib" "tools.jar")]
+    (.addURL loader (io/as-url file))))
+
 (defonce ^:private tools-jar-classloader
   ;; First, find top-level Clojure classloader.
-  (let [^DynamicClassLoader loader
-        (loop [loader (.getContextClassLoader (Thread/currentThread))]
-          (let [parent (.getParent loader)]
-            (if (instance? DynamicClassLoader parent)
-              (recur parent)
-              loader)))]
-    ;; Loader found, add tools.jar to it
-    (let [file (io/file (System/getProperty "java.home"))
-          file (if (.equalsIgnoreCase (.getName file) "jre")
-                 (.getParentFile file)
-                 file)
-          file (io/file file "lib" "tools.jar")]
-      (.addURL loader (io/as-url file)))
-    loader))
+  (delay
+   (try
+     (let [^DynamicClassLoader loader (get-dynamic-classloader)]
+      ;; Loader found, add tools.jar to it
+      (add-tools-jar-to-classloader! loader)
+      loader)
+     (catch Exception e
+       (throw (ex-info "Could not prepare the classloader."
+                       {:hint "If you're currently requiring clj-memory-meter.core in your (ns) form, try removing it from there and executing (require 'clj-memory-meter.core) manually after everything is loaded."}
+                       e))))))
 
 (defn- get-self-pid
   "Returns the process ID of the current JVM process."
@@ -44,7 +57,7 @@
 
 (defn- mk-vm [pid]
   (let [vm-class (Class/forName "com.sun.tools.attach.VirtualMachine"
-                                false tools-jar-classloader)
+                                false @tools-jar-classloader)
         method (.getDeclaredMethod vm-class "attach" (into-array Class [String]))]
     (.invoke method nil (object-array [pid]))))
 
