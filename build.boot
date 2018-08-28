@@ -1,6 +1,6 @@
 (task-options!
  pom {:project     'com.clojure-goes-fast/clj-memory-meter
-      :version     "0.1.2-SNAPSHOT"
+      :version     "0.1.2"
       :description "Measure object memory consumption from Clojure"
       :url         "http://github.com/clojure-goes-fast/clj-memory-meter"
       :scm         {:url "http://github.com/clojure-goes-fast/clj-memory-meter"}
