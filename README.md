@@ -1,7 +1,7 @@
 # clj-memory-meter
 
 This library is a thin wrapper
-around [Java Agent for Memory Managements](https://github.com/jbellis/jamm). It
+around [Java Agent for Memory Measurements](https://github.com/jbellis/jamm). It
 allows to inspect at runtime how much memory an object occupies together with
 all its child fields.
 
