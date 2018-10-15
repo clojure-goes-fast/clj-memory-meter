@@ -16,6 +16,12 @@ runtime.
 
 ## Usage
 
+**JDK9+:** you must start the JVM with option `-Djdk.attach.allowAttachSelf`,
+otherwise the agent will not be able to dynamically attach to the running
+process. For Leiningen, add `:jvm-opts ["-Djdk.attach.allowAttachSelf"]` to
+`project.clj`. For Boot, start the process with environment variable
+`BOOT_JVM_OPTIONS="-Djdk.attach.allowAttachSelf"`.
+
 Add `com.clojure-goes-fast/clj-memory-meter` to your dependencies:
 
 [![](https://clojars.org/com.clojure-goes-fast/clj-memory-meter/latest-version.svg)](https://clojars.org/com.clojure-goes-fast/clj-memory-meter)
