@@ -111,7 +111,7 @@
       (str bytes " B")
       (let [exp (int (/ (Math/log bytes) (Math/log unit)))
             pre (nth "KMGTPE" (dec exp))]
-        (format "%.1f %sB" (/ bytes (Math/pow unit exp)) pre)))))
+        (format "%.1f %siB" (/ bytes (Math/pow unit exp)) pre)))))
 
 #_(convert-to-human-readable 512)
 #_(convert-to-human-readable 10e8)
