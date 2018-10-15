@@ -67,6 +67,14 @@
        (add-url-to-classloader-reflective loader tools-jar))
      loader)))
 
+(defn get-virtualmachine-class []
+  ;; In JDK9+, the class is already present, no extra steps required.
+  (try (resolve 'com.sun.tools.attach.VirtualMachine)
+       ;; In earlier JDKs, load tools.jar and get the class from there.
+       (catch ClassNotFoundException _
+         (Class/forName "com.sun.tools.attach.VirtualMachine"
+                        false @tools-jar-classloader))))
+
 (defn- get-self-pid
   "Returns the process ID of the current JVM process."
   []
@@ -76,8 +84,7 @@
 #_(get-self-pid)
 
 (defn- mk-vm [pid]
-  (let [vm-class (Class/forName "com.sun.tools.attach.VirtualMachine"
-                                false @tools-jar-classloader)
+  (let [vm-class (get-virtualmachine-class)
         method (.getDeclaredMethod vm-class "attach" (into-array Class [String]))]
     (.invoke method nil (object-array [pid]))))
 
