@@ -1,6 +1,6 @@
 (task-options!
  pom {:project     'com.clojure-goes-fast/clj-memory-meter
-      :version     "0.1.2"
+      :version     "0.1.3-SNAPSHOT"
       :description "Measure object memory consumption from Clojure"
       :url         "http://github.com/clojure-goes-fast/clj-memory-meter"
       :scm         {:url "http://github.com/clojure-goes-fast/clj-memory-meter"}
@@ -10,7 +10,7 @@
 
 (set-env! :resource-paths #{"src" "res"}
           :source-paths   #{"src"}
-          :dependencies   '[[org.clojure/clojure "1.9.0" :scope "provided"]])
+          :dependencies   '[[org.clojure/clojure "1.10.1" :scope "provided"]])
 
 (deftask build []
   (comp (pom)
