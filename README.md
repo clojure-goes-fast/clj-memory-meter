@@ -93,4 +93,4 @@ is
 clj-memory-meter is distributed under the Eclipse Public License.
 See [ECLIPSE_PUBLIC_LICENSE](license/ECLIPSE_PUBLIC_LICENSE).
 
-Copyright 2018-2019 Alexander Yakushev
+Copyright 2018-2020 Alexander Yakushev
