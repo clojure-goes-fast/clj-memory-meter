@@ -6,7 +6,7 @@
 
 ;;;; Agent JAR unpacking
 
-(def ^:private jamm-jar-name "jamm-0.3.2.jar")
+(def ^:private jamm-jar-name "jamm-0.3.3.jar")
 
 (defn- unpack-jamm-from-resource []
   (let [dest (File/createTempFile "jamm" ".jar")]
