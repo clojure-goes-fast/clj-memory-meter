@@ -2,7 +2,10 @@
 
 ### master (unreleased)
 
-- [#3](https://github.com/clojure-goes-fast/clj-memory-meter/issues/3): Use proper unit names for power-of-2 sizes.
+### 0.1.3 (2020-08-11)
+
+- Update JAMM dependency to 0.3.3.
+- [#4](https://github.com/clojure-goes-fast/clj-memory-meter/issues/4): Use proper unit names for power-of-2 sizes.
 
 ### 0.1.2 (2018-08-28)
 
