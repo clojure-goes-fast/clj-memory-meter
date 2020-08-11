@@ -95,10 +95,11 @@
   [vm agent-jar]
   (let [vm-sym (if (try (resolve 'com.sun.tools.attach.VirtualMachine)
                         (catch ClassNotFoundException _))
-                 (with-meta vm {:tag 'com.sun.tools.attach.VirtualMachine})
-                 vm)]
-    `(do (.loadAgent ~vm-sym ~agent-jar)
-         (.detach ~vm-sym))))
+                 (with-meta (gensym "vm") {:tag 'com.sun.tools.attach.VirtualMachine})
+                 (gensym "vm"))]
+    `(let [~vm-sym ~vm]
+       (do (.loadAgent ~vm-sym ~agent-jar)
+           (.detach ~vm-sym)))))
 
 (def ^:private jamm-agent-loaded
   (delay (load-agent-and-detach (mk-vm (get-self-pid)) extracted-jamm-jar)
