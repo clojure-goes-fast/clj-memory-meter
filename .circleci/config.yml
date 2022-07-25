@@ -1,0 +1,40 @@
+version: 2.1
+
+jobs:
+  test:
+    parameters:
+      docker-image:
+        type: string
+      clj-version:
+        type: string
+        default: "1.11"
+    working_directory: ~/project
+    docker:
+      - image: << parameters.docker-image >>
+    steps:
+      - checkout
+      - restore_cache:
+          key: project-{{ checksum "deps.edn" }}
+      - run: clojure -X:attach:test :clj '"<< parameters.clj-version >>"'
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: project-{{ checksum "deps.edn" }}
+
+workflows:
+  test_all_jdks:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              docker-image:
+                - clojure:openjdk-8-bullseye
+                - clojure:openjdk-11-bullseye
+              clj-version: ["1.9", "1.10", "1.11"]
+      - test:
+          matrix:
+            parameters:
+              docker-image:
+                - clojure:temurin-17-focal
+                - clojure:temurin-18-focal
+              clj-version: ["1.10", "1.11"]
