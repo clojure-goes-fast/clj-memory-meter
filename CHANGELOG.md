@@ -1,6 +1,10 @@
 # Changelog
 
-### master (unreleased)
+### 0.2.0 (2022-07-27)
+
+- [#4](https://github.com/clojure-goes-fast/clj-memory-meter/issues/5): Switch
+  JAMM dependency to a custom 0.4.0 build that uses Unsafe instead of reflection
+  when run in JDK 17+.
 
 ### 0.1.3 (2020-08-11)
 

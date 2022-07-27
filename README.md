@@ -1,9 +1,9 @@
-# clj-memory-meter
+# clj-memory-meter [![CircleCI](https://dl.circleci.com/status-badge/img/gh/clojure-goes-fast/clj-memory-meter/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/clojure-goes-fast/clj-memory-meter/tree/master) ![](https://img.shields.io/badge/dependencies-none-brightgreen)
 
-This library is a thin wrapper
-around [Java Agent for Memory Measurements](https://github.com/jbellis/jamm). It
-allows to inspect at runtime how much memory an object occupies together with
-all its child fields.
+**clj-memory-meter** is a small library that allows you to inspect at runtime
+how much memory an object occupies together with all its child fields. It is a
+thin wrapper around [Java Agent for Memory
+Measurements](https://github.com/jbellis/jamm).
 
 Extra features compared to **jamm**:
 
@@ -16,11 +16,12 @@ runtime.
 
 ## Usage
 
-**JDK9+:** you must start the JVM with option `-Djdk.attach.allowAttachSelf`,
-otherwise the agent will not be able to dynamically attach to the running
-process. For Leiningen, add `:jvm-opts ["-Djdk.attach.allowAttachSelf"]` to
-`project.clj`. For Boot, start the process with environment variable
-`BOOT_JVM_OPTIONS="-Djdk.attach.allowAttachSelf"`.
+**JDK11+:** you must start your application with JVM option
+`-Djdk.attach.allowAttachSelf`, otherwise the profiling agent will not be able
+to dynamically attach to the running process. For Leiningen, add `:jvm-opts
+["-Djdk.attach.allowAttachSelf"]` to `project.clj`. For tools.deps, add the same
+`:jvm-opts` to `deps.edn` or write `-J-Djdk.attach.allowAttachSelf` explicitly
+in your REPL command.
 
 Add `com.clojure-goes-fast/clj-memory-meter` to your dependencies:
 
@@ -80,6 +81,14 @@ Once loaded, you can measure objects like this:
 ;; https://github.com/jbellis/jamm/blob/master/src/org/github/jamm/MemoryMeter.java
 ```
 
+**Note on JDK17+:** Starting with Java 17, JVM no longer allows accessing
+private fields of classes residing in external modules. This made
+clj-memory-meter unusable in most scenarios. To alleviate this, in version 0.2.0 and
+forward if run on Java 17+, clj-memory-meter utilizes Unsafe to get into such
+private fields. This works but, as any Unsafe usage, can potentially crash
+the application. Use at your own risk. Also, the Unsafe itself may go away in
+the future versions of Java.
+
 ## License
 
 jamm is distributed under Apache-2.0.
@@ -93,4 +102,4 @@ is
 clj-memory-meter is distributed under the Eclipse Public License.
 See [ECLIPSE_PUBLIC_LICENSE](license/ECLIPSE_PUBLIC_LICENSE).
 
-Copyright 2018-2020 Alexander Yakushev
+Copyright 2018-2022 Alexander Yakushev
