@@ -6,7 +6,7 @@
 
 ;;;; Agent JAR unpacking
 
-(def ^:private jamm-jar-name "jamm-0.3.3.jar")
+(def ^:private jamm-jar-name "jamm-0.4.0-unsafe.jar")
 
 (defn- unpack-jamm-from-resource []
   (let [dest (File/createTempFile "jamm" ".jar")]
@@ -28,7 +28,7 @@
 (defn- add-url-to-classloader-reflective
   "This is needed for cases when there is no DynamicClassLoader in the classloader
   chain (i.e., the env is not a REPL). Note that this will throw warning on Java
-  9/10 and will probably stop working at all from Java 11."
+  11 and stops working after Java 17."
   [^URLClassLoader loader, url]
   (doto (.getDeclaredMethod URLClassLoader "addURL" (into-array Class [java.net.URL]))
     (.setAccessible true)
@@ -125,10 +125,14 @@
 
 ;;;; Public API
 
+(defn meter-builder []
+  @jamm-agent-loaded
+  (let [mm-class (Class/forName "org.github.jamm.MemoryMeter")
+        builder (.getDeclaredMethod mm-class "builder" (into-array Class []))]
+    (.invoke builder nil (object-array 0))))
+
 (def ^:private memory-meter
-  (delay
-   @jamm-agent-loaded
-   (.newInstance (Class/forName "org.github.jamm.MemoryMeter"))))
+  (delay (.build (meter-builder))))
 
 (defn- convert-to-human-readable
   "Taken from http://programming.guide/java/formatting-byte-size-to-human-readable-format.html."
