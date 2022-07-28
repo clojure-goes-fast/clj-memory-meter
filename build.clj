@@ -8,7 +8,7 @@
 (defmacro opts+ []
   `(assoc ~'opts
           :lib 'com.clojure-goes-fast/clj-memory-meter
-          :version "0.2.0"
+          :version "0.2.1"
           :resource-dirs ["res"]
           :src-pom "res/pom-template.xml"))
 

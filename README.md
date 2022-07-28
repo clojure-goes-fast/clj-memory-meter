@@ -17,8 +17,8 @@ runtime.
 ## Usage
 
 **JDK11+:** you must start your application with JVM option
-`-Djdk.attach.allowAttachSelf`, otherwise the profiling agent will not be able
-to dynamically attach to the running process. For Leiningen, add `:jvm-opts
+`-Djdk.attach.allowAttachSelf`, otherwise the agent will not be able to
+dynamically attach to the running process. For Leiningen, add `:jvm-opts
 ["-Djdk.attach.allowAttachSelf"]` to `project.clj`. For tools.deps, add the same
 `:jvm-opts` to `deps.edn` or write `-J-Djdk.attach.allowAttachSelf` explicitly
 in your REPL command.

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.clojure-goes-fast</groupId>
-  <artifactId>clj-async-profiler</artifactId>
-  <name>clj-async-profiler</name>
+  <groupId></groupId>
+  <artifactId></artifactId>
+  <name></name>
   <description>Measure object memory consumption in Clojure</description>
   <url>https://github.com/clojure-goes-fast/clj-memory-meter</url>
   <licenses>
@@ -18,12 +18,5 @@
     <url>https://github.com/clojure-goes-fast/clj-memory-meter</url>
   </scm>
   <dependencies>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <version>1.11.1</version>
-      <scope>provided</scope>
-      <exclusions/>
-    </dependency>
   </dependencies>
 </project>

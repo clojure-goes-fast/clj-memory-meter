@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.2.1 (2022-07-28)
+
+- Make Java version detection within JAMM more robust.
+
 ### 0.2.0 (2022-07-27)
 
 - [#4](https://github.com/clojure-goes-fast/clj-memory-meter/issues/5): Switch
