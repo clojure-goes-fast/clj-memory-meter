@@ -36,5 +36,5 @@ workflows:
             parameters:
               docker-image:
                 - clojure:temurin-17-focal
-                - clojure:temurin-18-focal
+                - clojure:temurin-19-focal
               clj-version: ["1.10", "1.11"]
