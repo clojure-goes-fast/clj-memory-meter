@@ -1,6 +1,7 @@
 (ns clj-memory-meter.core-test
   (:require [clj-memory-meter.core :as sut]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all])
+  (:import org.spdx.library.model.license.LicenseInfoFactory))
 
 (deftest basic-test
   (is (= 240 (sut/measure [] :bytes true)))
@@ -13,3 +14,6 @@
   (is (= "240 B" (sut/measure [])))
   (is (= "3.1 KiB" (sut/measure (vec (range 100)))))
   (is (= "2.8 MiB" (sut/measure (vec (range 100000))))))
+
+(deftest error-test
+  (is (< 100000 (sut/measure (LicenseInfoFactory/getListedLicenseById "Apache-2.0") :bytes true))))

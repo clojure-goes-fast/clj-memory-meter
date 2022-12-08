@@ -12,6 +12,8 @@
 
   :test {:extra-paths ["test"]
          :extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.0"
-                                                            :git/sha "48c3c67"}}
+                                                            :git/sha "48c3c67"}
+                      ;; Dependency only to test the error skipping behavior.
+                      org.spdx/java-spdx-library {:mvn/version "1.1.2"}}
          :exec-fn cognitect.test-runner.api/test
          :jvm-opts ["-Djdk.attach.allowAttachSelf"]}}}
