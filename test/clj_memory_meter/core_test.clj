@@ -16,4 +16,6 @@
   (is (= "2.8 MiB" (sut/measure (vec (range 100000))))))
 
 (deftest error-test
-  (is (< 100000 (sut/measure (LicenseInfoFactory/getListedLicenseById "Apache-2.0") :bytes true))))
+  ;; Only test this against JDK14+.
+  (when (>= (try (eval '(.major (Runtime/version))) (catch Exception _ 0)) 14)
+    (is (< 100000 (sut/measure (LicenseInfoFactory/getListedLicenseById "Apache-2.0") :bytes true)))))
