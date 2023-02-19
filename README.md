@@ -1,4 +1,4 @@
-# clj-memory-meter [![CircleCI](https://dl.circleci.com/status-badge/img/gh/clojure-goes-fast/clj-memory-meter/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/clojure-goes-fast/clj-memory-meter/tree/master) ![](https://img.shields.io/badge/dependencies-none-brightgreen)
+# clj-memory-meter [![CircleCI](https://img.shields.io/circleci/build/github/clojure-goes-fast/clj-memory-meter/master.svg)](https://dl.circleci.com/status-badge/redirect/gh/clojure-goes-fast/clj-memory-meter/tree/master) ![](https://img.shields.io/badge/dependencies-none-brightgreen) [![](https://img.shields.io/clojars/dt/com.clojure-goes-fast/clj-memory-meter?color=teal)](https://clojars.org/com.clojure-goes-fast/clj-memory-meter) [![](https://img.shields.io/badge/-changelog-blue.svg)](CHANGELOG.md)
 
 **clj-memory-meter** is a small library that allows you to inspect at runtime
 how much memory an object occupies together with all its child fields. It is a
@@ -56,27 +56,6 @@ Once loaded, you can measure objects like this:
 (mm/measure (object-array (repeatedly 100 #(String. "hello"))) :bytes true)
 ;=> 2848
 
-;; :debug true can be passed to print the object hierarchy. You can also pass an
-;; integer number to limit the number of nested levels printed.
-
-(mm/measure (apply list (range 4)) :debug true)
-
-; root [clojure.lang.PersistentList] 256 bytes (40 bytes)
-;   |
-;   +--_first [java.lang.Long] 24 bytes (24 bytes)
-;   |
-;   +--_rest [clojure.lang.PersistentList] 192 bytes (40 bytes)
-;     |
-;     +--_first [java.lang.Long] 24 bytes (24 bytes)
-;     |
-;     +--_rest [clojure.lang.PersistentList] 128 bytes (40 bytes)
-;       |
-;       +--_first [java.lang.Long] 24 bytes (24 bytes)
-;       |
-;       +--_rest [clojure.lang.PersistentList] 64 bytes (40 bytes)
-;         |
-;         +--_first [java.lang.Long] 24 bytes (24 bytes)
-
 ;; Custom MemoryMeter object can be passed. See what you can configure here:
 ;; https://github.com/jbellis/jamm/blob/master/src/org/github/jamm/MemoryMeter.java
 ```
@@ -102,4 +81,4 @@ is
 clj-memory-meter is distributed under the Eclipse Public License.
 See [ECLIPSE_PUBLIC_LICENSE](license/ECLIPSE_PUBLIC_LICENSE).
 
-Copyright 2018-2022 Alexander Yakushev
+Copyright 2018-2023 Alexander Yakushev
