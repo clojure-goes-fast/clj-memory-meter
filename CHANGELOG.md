@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.2.2 (2023-02-19)
+
+- Ignore access errors when trying to get private fields with Unsafe (for
+  example, in hidden classes) and skip the calculation for those fields.
+
 ### 0.2.1 (2022-07-28)
 
 - Make Java version detection within JAMM more robust.
