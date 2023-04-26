@@ -150,17 +150,12 @@
 (defn measure
   "Measure the memory usage of the `object`. Return a human-readable string.
 
-  :debug   - if true, print the object layout tree to stdout. Can also be set to
-             a number to limit the nesting level being printed.
   :shallow - if true, count only the object header and its fields, don't follow
              object references
   :bytes   - if true, return a number of bytes instead of a string
   :meter   - custom org.github.jamm.MemoryMeter object"
   [object & {:keys [debug shallow bytes meter]}]
   (let [m (or meter @memory-meter)
-        m (cond (integer? debug) (.enableDebug m debug)
-                debug (.enableDebug m)
-                :else m)
         byte-count (if shallow
                      (.measure m object)
                      (.measureDeep m object))]
