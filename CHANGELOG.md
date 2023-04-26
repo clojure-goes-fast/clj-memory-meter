@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.2.3 (2023-04-26)
+
+- Fix performance regression.
+
 ### 0.2.2 (2023-02-19)
 
 - Ignore access errors when trying to get private fields with Unsafe (for
