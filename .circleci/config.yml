@@ -30,11 +30,11 @@ workflows:
               docker-image:
                 - clojure:openjdk-8-bullseye
                 - clojure:openjdk-11-bullseye
-              clj-version: ["1.9", "1.10", "1.11"]
+              clj-version: ["1.9", "1.10", "1.11", "1.12"]
       - test:
           matrix:
             parameters:
               docker-image:
                 - clojure:temurin-17-jammy
                 - clojure:temurin-20-jammy
-              clj-version: ["1.10", "1.11"]
+              clj-version: ["1.10", "1.11", "1.12"]
