@@ -1,8 +1,8 @@
 # clj-memory-meter [![CircleCI](https://img.shields.io/circleci/build/github/clojure-goes-fast/clj-memory-meter/master.svg)](https://dl.circleci.com/status-badge/redirect/gh/clojure-goes-fast/clj-memory-meter/tree/master) ![](https://img.shields.io/badge/dependencies-none-brightgreen) [![](https://img.shields.io/clojars/dt/com.clojure-goes-fast/clj-memory-meter?color=teal)](https://clojars.org/com.clojure-goes-fast/clj-memory-meter) [![](https://img.shields.io/badge/-changelog-blue.svg)](CHANGELOG.md)
 
-**clj-memory-meter** is a small library that allows you to inspect at runtime
-how much memory an object occupies together with all its child fields. It is a
-thin wrapper around [Java Agent for Memory
+**clj-memory-meter** is a Clojure library that allows you to inspect how much
+memory an object occupies at runtime, together with all its child fields. It is
+a wrapper around [Java Agent for Memory
 Measurements](https://github.com/jbellis/jamm).
 
 Extra features compared to **jamm**:
@@ -41,7 +41,7 @@ Once loaded, you can measure objects like this:
 ;=> "240 B"
 
 (mm/measure (into {} (map #(vector % (str %)) (range 100))))
-;=> "9.6 KB"
+;=> "9.6 KiB"
 
 ;; :shallow true calculates only memory occupied by the object itself,
 ;; without children
@@ -49,9 +49,9 @@ Once loaded, you can measure objects like this:
 (mm/measure (object-array (repeatedly 100 #(String. "hello"))) :shallow true)
 ;=> "416 B"
 (mm/measure (object-array (repeatedly 100 #(String. "hello"))))
-;=> "2.8 KB"
+;=> "2.8 KiB"
 
-;; :bytes true can be passed to return the raw number of bytes
+;; :bytes true can be passed to return the size in bytes as a number
 
 (mm/measure (object-array (repeatedly 100 #(String. "hello"))) :bytes true)
 ;=> 2848
@@ -61,12 +61,12 @@ Once loaded, you can measure objects like this:
 ```
 
 **Note on JDK17+:** Starting with Java 17, JVM no longer allows accessing
-private fields of classes residing in external modules. This made
-clj-memory-meter unusable in most scenarios. To alleviate this, in version 0.2.0 and
-forward if run on Java 17+, clj-memory-meter utilizes Unsafe to get into such
-private fields. This works but, as any Unsafe usage, can potentially crash
-the application. Use at your own risk. Also, the Unsafe itself may go away in
-the future versions of Java.
+private fields of classes residing in external modules. This made JAMM unusable
+in many scenarios. To alleviate this, in version 0.2.0 and forward if run on
+Java 17+, clj-memory-meter utilizes Unsafe to get into such private fields. This
+works for now, most of the time; however, as any Unsafe usage, it can
+potentially crash the application. Use at your own risk. Also, the Unsafe itself
+may go away in the future versions of Java.
 
 ## License
 
