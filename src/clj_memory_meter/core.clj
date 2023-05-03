@@ -79,11 +79,8 @@
   "This macro expands into proper way of obtaining self PID on JDK9+, and digs
   into internals on JDK8."
   []
-  (if (and (try (resolve 'java.lang.ProcessHandle)
-                (catch ClassNotFoundException _))
-           ;; (java.lang.ProcessHandle/current) doesn't work before 1.10.0
-           ;; because of a Clojure bug.
-           (>= (compare (mapv *clojure-version* [:major :minor]) [1 10]) 0))
+  (if (try (resolve 'java.lang.ProcessHandle)
+           (catch ClassNotFoundException _))
     `(.pid (java.lang.ProcessHandle/current))
     `(let [runtime# (ManagementFactory/getRuntimeMXBean)
            jvm# (.get (doto (.getDeclaredField (class runtime#) "jvm")
