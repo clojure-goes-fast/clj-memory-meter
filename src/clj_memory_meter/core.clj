@@ -128,9 +128,6 @@
         builder (.getDeclaredMethod mm-class "builder" (into-array Class []))]
     (.invoke builder nil (object-array 0))))
 
-(def ^:private memory-meter
-  (delay (.build (meter-builder))))
-
 (defn- convert-to-human-readable
   "Taken from http://programming.guide/java/formatting-byte-size-to-human-readable-format.html."
   [bytes]
@@ -147,12 +144,21 @@
 (defn measure
   "Measure the memory usage of the `object`. Return a human-readable string.
 
+  :debug   - if true, print the object layout tree to stdout. Can also be set to
+             a number to limit the nesting level being printed.
   :shallow - if true, count only the object header and its fields, don't follow
              object references
   :bytes   - if true, return a number of bytes instead of a string
   :meter   - custom org.github.jamm.MemoryMeter object"
   [object & {:keys [debug shallow bytes meter]}]
-  (let [m (or meter @memory-meter)
+  (let [m (or meter
+              (let [builder (meter-builder)]
+                (cond (and debug (boolean? debug))
+                      (.printVisitedTree builder)
+
+                      (integer? debug)
+                      (.printVisitedTreeUpTo builder debug))
+                (.build builder)))
         byte-count (if shallow
                      (.measure m object)
                      (.measureDeep m object))]

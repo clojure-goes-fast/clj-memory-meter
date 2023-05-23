@@ -56,6 +56,27 @@ Once loaded, you can measure objects like this:
 (mm/measure (object-array (repeatedly 100 #(String. "hello"))) :bytes true)
 ;=> 2848
 
+-;; :debug true can be passed to print the object hierarchy. You can also pass an
+-;; integer number to limit the number of nested levels printed.
+-
+-(mm/measure (apply list (range 4)) :debug true)
+-
+-; root [clojure.lang.PersistentList] 256 bytes (40 bytes)
+-;   |
+-;   +--_first [java.lang.Long] 24 bytes (24 bytes)
+-;   |
+-;   +--_rest [clojure.lang.PersistentList] 192 bytes (40 bytes)
+-;     |
+-;     +--_first [java.lang.Long] 24 bytes (24 bytes)
+-;     |
+-;     +--_rest [clojure.lang.PersistentList] 128 bytes (40 bytes)
+-;       |
+-;       +--_first [java.lang.Long] 24 bytes (24 bytes)
+-;       |
+-;       +--_rest [clojure.lang.PersistentList] 64 bytes (40 bytes)
+-;         |
+-;         +--_first [java.lang.Long] 24 bytes (24 bytes)
+
 ;; Custom MemoryMeter object can be passed. See what you can configure here:
 ;; https://github.com/jbellis/jamm/blob/master/src/org/github/jamm/MemoryMeter.java
 ```
