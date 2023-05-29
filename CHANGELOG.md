@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.3.0 (2023-05-29)
+
+- Use newest upstream JAMM version that handles JDK17+ compatibility in a more
+  sensible way.
+- Restore the broken functionality of printing object trees.
+
 ### 0.2.3 (2023-04-26)
 
 - Fix performance regression.
