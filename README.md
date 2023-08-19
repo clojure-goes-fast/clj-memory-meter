@@ -7,9 +7,10 @@ Measurements](https://github.com/jbellis/jamm).
 
 Extra features compared to **jamm**:
 
-1. Easy runtime loading (you can start using it at any time at the REPL,
-   providing additional startup parameters is not necessary).
-2. Human-readable size output.
+1. Can be added to the project as a simple dependency (don't have to provide a
+separate agent file and point to it with a JVM option).
+2. Loadable at runtime.
+3. Human-readable size output.
 
 **jamm** JAR file is shipped together with **clj-memory-meter** and unpacked at
 runtime.
@@ -56,38 +57,36 @@ Once loaded, you can measure objects like this:
 (mm/measure (object-array (repeatedly 100 #(String. "hello"))) :bytes true)
 ;=> 2848
 
--;; :debug true can be passed to print the object hierarchy. You can also pass an
--;; integer number to limit the number of nested levels printed.
--
--(mm/measure (apply list (range 4)) :debug true)
--
--; root [clojure.lang.PersistentList] 256 bytes (40 bytes)
--;   |
--;   +--_first [java.lang.Long] 24 bytes (24 bytes)
--;   |
--;   +--_rest [clojure.lang.PersistentList] 192 bytes (40 bytes)
--;     |
--;     +--_first [java.lang.Long] 24 bytes (24 bytes)
--;     |
--;     +--_rest [clojure.lang.PersistentList] 128 bytes (40 bytes)
--;       |
--;       +--_first [java.lang.Long] 24 bytes (24 bytes)
--;       |
--;       +--_rest [clojure.lang.PersistentList] 64 bytes (40 bytes)
--;         |
--;         +--_first [java.lang.Long] 24 bytes (24 bytes)
+;; :debug true can be passed to print the object hierarchy. You can also pass an
+;; integer number to limit the number of nested levels printed.
+
+(mm/measure (apply list (range 4)) :debug true)
+
+; root [clojure.lang.PersistentList] 256 bytes (40 bytes)
+;   |
+;   +--_first [java.lang.Long] 24 bytes (24 bytes)
+;   |
+;   +--_rest [clojure.lang.PersistentList] 192 bytes (40 bytes)
+;     |
+;     +--_first [java.lang.Long] 24 bytes (24 bytes)
+;     |
+;     +--_rest [clojure.lang.PersistentList] 128 bytes (40 bytes)
+;       |
+;       +--_first [java.lang.Long] 24 bytes (24 bytes)
+;       |
+;       +--_rest [clojure.lang.PersistentList] 64 bytes (40 bytes)
+;         |
+;         +--_first [java.lang.Long] 24 bytes (24 bytes)
 
 ;; Custom MemoryMeter object can be passed. See what you can configure here:
 ;; https://github.com/jbellis/jamm/blob/master/src/org/github/jamm/MemoryMeter.java
 ```
 
 **Note on JDK17+:** Starting with Java 17, JVM no longer allows accessing
-private fields of classes residing in external modules. This made JAMM unusable
-in many scenarios. To alleviate this, in version 0.2.0 and forward if run on
-Java 17+, clj-memory-meter utilizes Unsafe to get into such private fields. This
-works for now, most of the time; however, as any Unsafe usage, it can
-potentially crash the application. Use at your own risk. Also, the Unsafe itself
-may go away in the future versions of Java.
+private fields of classes residing in external modules. On those versions of
+Java, JAMM and clj-memory-meter utilize Unsafe to get into such private fields.
+As any Unsafe usage, it can potentially crash the application. Use at your own
+risk. Also, the Unsafe itself may go away in the future versions of Java.
 
 ## License
 
