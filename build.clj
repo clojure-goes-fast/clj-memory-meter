@@ -6,11 +6,18 @@
             [org.corfield.build :as bb]))
 
 (defmacro opts+ []
-  `(assoc ~'opts
-          :lib 'com.clojure-goes-fast/clj-memory-meter
+  `(let [url# "https://github.com/clojure-goes-fast/clj-memory-meter"]
+     (-> {:lib 'com.clojure-goes-fast/clj-memory-meter
           :version "0.3.0"
           :resource-dirs ["res"]
-          :src-pom "res/pom-template.xml"))
+          :scm {:url url#}
+          :pom-data [[:description "Measure object memory consumption in Clojure"]
+                     [:url url#]
+                     [:licenses
+                      [:license
+                       [:name "Eclipse Public License"]
+                       [:url "http://www.eclipse.org/legal/epl-v10.html"]]]]}
+         (merge ~'opts))))
 
 ;; Hack to propagate scope into pom.
 (alter-var-root
