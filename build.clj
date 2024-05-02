@@ -1,23 +1,36 @@
 (ns build
   (:refer-clojure :exclude [test])
-  (:require [clojure.string :as str]
-            [clojure.tools.build.api :as b]
+  (:require [clojure.tools.build.api :as b]
             [clojure.tools.build.tasks.write-pom]
-            [org.corfield.build :as bb]))
+            [deps-deploy.deps-deploy :as dd]))
 
-(defmacro opts+ []
-  `(let [url# "https://github.com/clojure-goes-fast/clj-memory-meter"]
-     (-> {:lib 'com.clojure-goes-fast/clj-memory-meter
-          :version "0.3.0"
-          :resource-dirs ["res"]
-          :scm {:url url#}
-          :pom-data [[:description "Measure object memory consumption in Clojure"]
-                     [:url url#]
-                     [:licenses
-                      [:license
-                       [:name "Eclipse Public License"]
-                       [:url "http://www.eclipse.org/legal/epl-v10.html"]]]]}
-         (merge ~'opts))))
+(def default-opts
+  (let [url "https://github.com/clojure-goes-fast/clj-memory-meter"
+        version "0.3.0"]
+    {;; Pom section
+     :lib 'com.clojure-goes-fast/clj-memory-meter
+     :version version
+     :scm {:url url, :tag version}
+     :pom-data [[:description "Measure object memory consumption in Clojure"]
+                [:url url]
+                [:licenses
+                 [:license
+                  [:name "Eclipse Public License"]
+                  [:url "http://www.eclipse.org/legal/epl-v10.html"]]]]
+     ;; Build section
+     :basis (b/create-basis {})
+     :target "target"
+     :class-dir "target/classes"}))
+
+(defmacro opts+ [& body]
+  `(let [~'opts (merge default-opts ~'opts)]
+     ~@body
+     ~'opts))
+
+(defn- jar-file [{:keys [target lib version]}]
+  (format "%s/%s-%s.jar" target (name lib) version))
+
+(defn clean [opts] (b/delete {:path (:target (opts+))}))
 
 ;; Hack to propagate scope into pom.
 (alter-var-root
@@ -29,23 +42,22 @@
        (cond-> res
          (and alias scope) (conj [(keyword alias "scope") scope]))))))
 
-(defn test "Run all the tests." [opts]
-  (bb/run-tests (cond-> opts
-                  (:clj opts) (assoc :aliases [(:clj opts)])))
-  opts)
-
 (defn jar
-  "Run the CI pipeline of tests (and build the JAR).
-  Specify :cljs true to run the ClojureScript tests as well."
+  "Compile and package the JAR."
   [opts]
-  (bb/clean opts)
-  (let [{:keys [class-dir src+dirs] :as opts} (#'bb/jar-opts (opts+))]
-    (b/write-pom opts)
-    (b/copy-dir {:src-dirs   src+dirs
-                 :target-dir class-dir
-                 :include "**.{clj,jar}"})
-    (println "Building jar...")
-    (b/jar opts)))
+  (opts+
+    (doto opts clean javac b/write-pom)
+    (let [{:keys [class-dir basis]} opts
+          jar (jar-file opts)]
+      (println (format "Building %s..." jar))
+      (b/copy-dir {:src-dirs   (:paths basis)
+                   :target-dir class-dir
+                   :include    "**"
+                   :ignores    [#".+\.java"]})
+      (b/jar (assoc opts :jar-file jar)))))
 
 (defn deploy "Deploy the JAR to Clojars." [opts]
-  (bb/deploy (opts+)))
+  (opts+
+    (dd/deploy {:installer :remote
+                :artifact (b/resolve-path (jar-file opts))
+                :pom-file (b/pom-path opts)})))

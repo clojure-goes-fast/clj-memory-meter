@@ -7,18 +7,20 @@ jobs:
         type: string
       clj-version:
         type: string
-        default: "1.11"
     working_directory: ~/project
     docker:
       - image: << parameters.docker-image >>
+    environment:
+      CLOJURE_VERSION: << parameters.clj-version >>
     steps:
       - checkout
       - restore_cache:
           key: project-{{ checksum "deps.edn" }}
-      - run: clojure -X:attach:test :clj '"<< parameters.clj-version >>"'
+      - run: clojure -X:test:$CLOJURE_VERSION
       - save_cache:
           paths:
             - ~/.m2
+            - ~/.gitlibs
           key: project-{{ checksum "deps.edn" }}
 
 workflows:
