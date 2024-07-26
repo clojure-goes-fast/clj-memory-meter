@@ -2,13 +2,13 @@
  :deps {org.clojure/clojure {:mvn/version "1.11.3" :mvn/scope "provided"}}
 
  :aliases
- {:attach {:jvm-opts ["-Djdk.attach.allowAttachSelf"]}
-  :build {:deps {io.github.clojure/tools.build {:mvn/version "0.10.0"}
+ {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.10.0"}
                  slipset/deps-deploy {:mvn/version "0.2.2"}}
           :ns-default build}
 
   :1.10 {:override-deps {org.clojure/clojure {:mvn/version "1.10.3"}}}
-  :1.12 {:override-deps {org.clojure/clojure {:mvn/version "1.12.0-alpha11"}}}
+  :1.11 {:override-deps {org.clojure/clojure {:mvn/version "1.11.3"}}}
+  :1.12 {:override-deps {org.clojure/clojure {:mvn/version "1.12.0-beta1"}}}
 
   :dev {:extra-paths ["test"]
         :jvm-opts ["-Djdk.attach.allowAttachSelf"]}
