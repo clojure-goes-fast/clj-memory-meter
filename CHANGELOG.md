@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.4.0 (2025-02-18)
+
+- Add support for [memory
+  tracing](https://github.com/clojure-goes-fast/clj-memory-meter?tab=readme-ov-file#memory-usage-tracing).
+
 ### 0.3.0 (2023-05-29)
 
 - Use newest upstream JAMM version that handles JDK17+ compatibility in a more
