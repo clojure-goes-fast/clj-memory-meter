@@ -128,7 +128,7 @@
         builder (.getDeclaredMethod mm-class "builder" (into-array Class []))]
     (.invoke builder nil (object-array 0))))
 
-(defn- convert-to-human-readable
+(defn convert-to-human-readable
   "Taken from http://programming.guide/java/formatting-byte-size-to-human-readable-format.html."
   [bytes]
   (let [unit 1024]

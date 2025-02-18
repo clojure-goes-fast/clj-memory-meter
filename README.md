@@ -88,6 +88,83 @@ Java, JAMM and clj-memory-meter utilize Unsafe to get into such private fields.
 As any Unsafe usage, it can potentially crash the application. Use at your own
 risk. Also, the Unsafe itself may go away in the future versions of Java.
 
+## Memory usage tracing
+
+The `clj-memory-meter.trace` provides a way to instrument functions so that they
+report heap usage before and after the invocation, and also memory size of the
+arguments and return values. Here's how it works:
+
+```clj
+(require '[clj-memory-meter.trace :as cmm.trace])
+
+(defn make-numbers [n]
+  (vec (repeatedly n #(rand-int 10000))))
+
+(defn avg [numbers]
+  (/ (reduce + numbers) (count numbers)))
+
+(defn distribution [m]
+  (->> (range 1 m)
+       (mapv #(make-numbers (* 1000000 %)))
+       (mapv avg)))
+
+(cmm.trace/trace-var #'make-numbers)
+(cmm.trace/trace-var #'avg)
+(cmm.trace/trace-var #'distribution)
+
+(cmm.trace/with-relative-usage
+  (distribution 5))
+
+; Initial used heap: 63.2 MiB (1.5%)
+; │ (example/distribution <24 B>) | Heap: +472 B (+0.0%)
+; │ │ (example/make-numbers <24 B>) | Heap: +1.5 KiB (+0.0%)
+; │ │ └─→ <20.2 MiB> | Heap: +20.2 MiB (+0.5%)
+; │ │
+; │ │ (example/make-numbers <24 B>) | Heap: +20.2 MiB (+0.5%)
+; │ │ └─→ <40.5 MiB> | Heap: +60.7 MiB (+1.5%)
+; │ │
+; │ │ (example/make-numbers <24 B>) | Heap: +60.7 MiB (+1.5%)
+; │ │ └─→ <60.7 MiB> | Heap: +121.6 MiB (+3.0%)
+; │ │
+; │ │ (example/make-numbers <24 B>) | Heap: +121.6 MiB (+3.0%)
+; │ │ └─→ <80.9 MiB> | Heap: +202.7 MiB (+4.9%)
+; │ │
+; │ │ (example/avg <20.2 MiB>) | Heap: +230.7 MiB (+5.6%)
+; │ │ └─→ <152 B> | Heap: +202.7 MiB (+4.9%)
+; │ │
+; │ │ (example/avg <40.5 MiB>) | Heap: +229.7 MiB (+5.6%)
+; │ │ └─→ <152 B> | Heap: +202.7 MiB (+4.9%)
+; │ │
+; │ │ (example/avg <60.7 MiB>) | Heap: +297.4 MiB (+7.3%)
+; │ │ └─→ <152 B> | Heap: +202.7 MiB (+4.9%)
+; │ │
+; │ │ (example/avg <80.9 MiB>) | Heap: +295.0 MiB (+7.2%)
+; │ │ └─→ <152 B> | Heap: +202.7 MiB (+4.9%)
+; │ └─→ <864 B> | Heap: +23.3 KiB (+0.0%)
+; Final used heap: +23.2 KiB (+0.0%)
+```
+
+Use `trace-var` to instrument a function. You can undo the instrumenting by
+calling `untrace-var` on it or redefining the function. Once instrumented, the
+function will print the current heap usage before and after its execution.
+
+By default, the absolute heap usage numbers are printed. But if you wrap the
+top-level call in `with-relative-usage` macro (like in the example above), each
+heap usage report will be relative to the **beginning** of execution (not
+relative to the previous heap report). So, in the example, `Heap: +20.2 MiB` and
+then `Heap: +60.7 MiB` means that the heap usage grew by 60 megabytes, not 80.
+
+If the traced function gets called a lot, it will significantly slow down
+execution. **Don't use this in production.** Also, you can disable the following
+features to reduce the overhead:
+
+- `*calculate-argument-and-return-sizes*` — bind to `false` to skip measuring
+  traced function arguments and returned values;
+- `*force-gc-around-traced-functions*` — bind to `false` to avoid calling
+  `(System/gc)` at traced function boundaries. Note that this will make heap
+  usage reports not very accurate since they will also include collectable
+  garbage.
+
 ## License
 
 jamm is distributed under Apache-2.0.
@@ -101,4 +178,4 @@ is
 clj-memory-meter is distributed under the Eclipse Public License.
 See [ECLIPSE_PUBLIC_LICENSE](license/ECLIPSE_PUBLIC_LICENSE).
 
-Copyright 2018-2024 Alexander Yakushev
+Copyright 2018-2025 Alexander Yakushev
