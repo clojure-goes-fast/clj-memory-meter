@@ -1,38 +1,99 @@
 version: 2.1
 
-jobs:
-  test:
-    parameters:
-      docker-image:
-        type: string
-      clj-version:
-        type: string
-    working_directory: ~/project
+defaults: &defaults
+  working_directory: ~/project
+
+executors:
+  jdk8:
     docker:
-      - image: << parameters.docker-image >>
-    environment:
-      CLOJURE_VERSION: << parameters.clj-version >>
+      - image: clojure:temurin-8-noble
+    <<: *defaults
+  jdk11:
+    docker:
+      - image: clojure:temurin-11-noble
+    <<: *defaults
+  jdk17:
+    docker:
+      - image: clojure:temurin-17-noble
+    <<: *defaults
+  jdk21:
+    docker:
+      - image: clojure:temurin-21-noble
+    <<: *defaults
+  jdk23:
+    docker:
+      - image: clojure:temurin-23-noble
+    <<: *defaults
+
+commands:
+  with_cache:
+    parameters:
+      steps:
+        type: steps
+      cache_key:
+        description: Will be used as part of the cache key
+        type: string
     steps:
-      - checkout
+      - run:
+          name: Generate cache checksum
+          command: |
+            for file in deps.edn project.clj
+            do
+              find . -name $file -exec cat {} +
+            done | sha256sum | awk '{print $1}' > /tmp/clojure_cache_seed
       - restore_cache:
-          key: project-{{ checksum "deps.edn" }}
-      - run: clojure -X:test:$CLOJURE_VERSION
+          key: cache-<< parameters.cache_key >>-{{ checksum "/tmp/clojure_cache_seed" }}
+      - steps: << parameters.steps >>
       - save_cache:
           paths:
             - ~/.m2
             - ~/.gitlibs
-          key: project-{{ checksum "deps.edn" }}
+            - .cpcache
+          key: cache-<< parameters.cache_key >>-{{ checksum "/tmp/clojure_cache_seed" }}
+
+jobs:
+  test:
+    parameters:
+      jdk_version:
+        type: string
+    executor: << parameters.jdk_version >>
+    steps:
+      - checkout
+      - with_cache:
+          cache_key: "test_v1"
+          steps:
+            - run: CLOJURE_VERSION=1.10 clojure -X:1.10:test
+            - run: CLOJURE_VERSION=1.11 clojure -X:1.11:test
+            - run: CLOJURE_VERSION=1.12 clojure -X:1.12:test
+
+  deploy:
+    executor: jdk8
+    steps:
+      - checkout
+      - run:
+         name: Deploy to Clojars
+         command: clojure -T:build deploy :version \"$CIRCLE_TAG\"
+
+run_always: &run_always
+  filters:
+    branches:
+      only: /.*/
+    tags:
+      only: /.*/
 
 workflows:
-  test_all_jdks:
+  run_all:
     jobs:
       - test:
           matrix:
             parameters:
-              docker-image:
-                - clojure:temurin-8-noble
-                - clojure:temurin-11-noble
-                - clojure:temurin-17-noble
-                - clojure:temurin-21-noble
-                - clojure:temurin-23-noble
-              clj-version: ["1.10", "1.11", "1.12"]
+              jdk_version: [jdk8, jdk11, jdk17, jdk21, jdk23]
+          <<: *run_always
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+(-\w+)?/
