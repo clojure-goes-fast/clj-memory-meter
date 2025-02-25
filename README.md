@@ -1,8 +1,7 @@
 # clj-memory-meter [![CircleCI](https://img.shields.io/circleci/build/github/clojure-goes-fast/clj-memory-meter/master.svg)](https://dl.circleci.com/status-badge/redirect/gh/clojure-goes-fast/clj-memory-meter/tree/master) ![](https://img.shields.io/badge/dependencies-none-brightgreen) [![](https://img.shields.io/clojars/dt/com.clojure-goes-fast/clj-memory-meter?color=teal)](https://clojars.org/com.clojure-goes-fast/clj-memory-meter) [![](https://img.shields.io/badge/-changelog-blue.svg)](CHANGELOG.md)
 
-**clj-memory-meter** is a Clojure library that allows you to inspect how much
-memory an object occupies at runtime, together with all its child fields. It is
-a wrapper around [Java Agent for Memory
+**clj-memory-meter** is a Clojure library that let's you inspect how much memory
+an object occupies in the heap. It is a wrapper around [Java Agent for Memory
 Measurements](https://github.com/jbellis/jamm).
 
 Extra features compared to **jamm**:
@@ -11,18 +10,21 @@ Extra features compared to **jamm**:
 separate agent file and point to it with a JVM option).
 2. Loadable at runtime.
 3. Human-readable size output.
+4. Memory usage tracing.
 
 **jamm** JAR file is shipped together with **clj-memory-meter** and unpacked at
 runtime.
 
 ## Usage
 
-**JDK11+:** you must start your application with JVM option
+On JDK11 and aboge, you must start your application with JVM option
 `-Djdk.attach.allowAttachSelf`, otherwise the agent will not be able to
-dynamically attach to the running process. For Leiningen, add `:jvm-opts
-["-Djdk.attach.allowAttachSelf"]` to `project.clj`. For tools.deps, add the same
-`:jvm-opts` to `deps.edn` or write `-J-Djdk.attach.allowAttachSelf` explicitly
-in your REPL command.
+dynamically attach to the running process.
+
+ - For Leiningen, add `:jvm-opts ["-Djdk.attach.allowAttachSelf"]` to
+ `project.clj`.
+ - For tools.deps, add the same `:jvm-opts` to `deps.edn` or write
+`-J-Djdk.attach.allowAttachSelf` explicitly in your REPL command.
 
 Add `com.clojure-goes-fast/clj-memory-meter` to your dependencies:
 
@@ -58,7 +60,7 @@ Once loaded, you can measure objects like this:
 ;=> 2848
 
 ;; :debug true can be passed to print the object hierarchy. You can also pass an
-;; integer number to limit the number of nested levels printed.
+;; integer instead of true to limit the number of nested levels printed.
 
 (mm/measure (apply list (range 4)) :debug true)
 
@@ -82,17 +84,92 @@ Once loaded, you can measure objects like this:
 ;; https://github.com/jbellis/jamm/blob/master/src/org/github/jamm/MemoryMeter.java
 ```
 
-**Note on JDK17+:** Starting with Java 17, JVM no longer allows accessing
-private fields of classes residing in external modules. On those versions of
-Java, JAMM and clj-memory-meter utilize Unsafe to get into such private fields.
-As any Unsafe usage, it can potentially crash the application. Use at your own
-risk. Also, the Unsafe itself may go away in the future versions of Java.
+### Troubleshooting
+
+Starting with Java 17, JVM no longer allows access to private fields of classes
+residing in external modules. On newer Java versions, clj-memory-meter utilizes
+Unsafe to get into such private fields. As any Unsafe usage, it can potentially
+crash the application. Use at your own risk.
+
+Because of Unsafe, you may eventually run into errors like this one:
+
+```
+Execution error (UnsupportedOperationException) at sun.misc.Unsafe/objectFieldOffset (Unsafe.java:645).
+can't get field offset on a hidden class: private final java.util.regex.Pattern$BmpCharPredicate java.util.regex.Pattern$BmpCharPredicate$$Lambda$22/0x80000002c.arg$1
+```
+
+The only way to prevent this from happening is to start the REPL with
+`--add-opens` JVM options for the in-module private classes. Expand the block
+below for the tools.deps alias I use locally for my development REPL.
+
+<details>
+  <summary>Click to show full :add-opens alias</summary>
+  <pre><code>:add-opens {:jvm-opts ["--add-opens=java.base/java.io=ALL-UNNAMED"
+                       "--add-opens=java.base/java.lang=ALL-UNNAMED"
+                       "--add-opens=java.base/java.lang.annotation=ALL-UNNAMED"
+                       "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"
+                       "--add-opens=java.base/java.lang.module=ALL-UNNAMED"
+                       "--add-opens=java.base/java.lang.ref=ALL-UNNAMED"
+                       "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED"
+                       "--add-opens=java.base/java.math=ALL-UNNAMED"
+                       "--add-opens=java.base/java.net=ALL-UNNAMED"
+                       "--add-opens=java.base/java.net.spi=ALL-UNNAMED"
+                       "--add-opens=java.base/java.nio=ALL-UNNAMED"
+                       "--add-opens=java.base/java.nio.channels=ALL-UNNAMED"
+                       "--add-opens=java.base/java.nio.channels.spi=ALL-UNNAMED"
+                       "--add-opens=java.base/java.nio.charset=ALL-UNNAMED"
+                       "--add-opens=java.base/java.nio.charset.spi=ALL-UNNAMED"
+                       "--add-opens=java.base/java.nio.file=ALL-UNNAMED"
+                       "--add-opens=java.base/java.nio.file.attribute=ALL-UNNAMED"
+                       "--add-opens=java.base/java.nio.file.spi=ALL-UNNAMED"
+                       "--add-opens=java.base/java.security=ALL-UNNAMED"
+                       "--add-opens=java.base/java.security.cert=ALL-UNNAMED"
+                       "--add-opens=java.base/java.security.interfaces=ALL-UNNAMED"
+                       "--add-opens=java.base/java.security.spec=ALL-UNNAMED"
+                       "--add-opens=java.base/java.text=ALL-UNNAMED"
+                       "--add-opens=java.base/java.text.spi=ALL-UNNAMED"
+                       "--add-opens=java.base/java.time=ALL-UNNAMED"
+                       "--add-opens=java.base/java.time.chrono=ALL-UNNAMED"
+                       "--add-opens=java.base/java.time.format=ALL-UNNAMED"
+                       "--add-opens=java.base/java.time.temporal=ALL-UNNAMED"
+                       "--add-opens=java.base/java.time.zone=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.function=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.jar=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.regex=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.spi=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.stream=ALL-UNNAMED"
+                       "--add-opens=java.base/java.util.zip=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.crypto=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.crypto.interfaces=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.crypto.spec=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.net=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.net.ssl=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.security.auth=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.security.auth.callback=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.security.auth.login=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.security.auth.spi=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.security.auth.x500=ALL-UNNAMED"
+                       "--add-opens=java.base/javax.security.cert=ALL-UNNAMED"
+                       "--add-opens=java.desktop/sun.java2d.marlin=ALL-UNNAMED"
+                       "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED"
+                       "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+                       "--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED"]}
+   </code></pre>
+</details>
 
 ## Memory usage tracing
 
-The `clj-memory-meter.trace` provides a way to instrument functions so that they
+`clj-memory-meter.trace` provides a way to instrument functions so that they
 report heap usage before and after the invocation, and also memory size of the
-arguments and return values. Here's how it works:
+arguments and return values. This blog post describes why you would want to use
+it and how: [Tracking memory usage with
+clj-memory-meter.trace](https://clojure-goes-fast.com/blog/tracking-memory-usage/).
+
+Here's a short example:
 
 ```clj
 (require '[clj-memory-meter.trace :as cmm.trace])
@@ -178,4 +255,4 @@ is
 clj-memory-meter is distributed under the Eclipse Public License.
 See [ECLIPSE_PUBLIC_LICENSE](license/ECLIPSE_PUBLIC_LICENSE).
 
-Copyright 2018-2025 Alexander Yakushev
+Copyright 2018-2025 Oleksandr Yakushev
