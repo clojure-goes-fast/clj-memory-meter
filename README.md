@@ -17,7 +17,7 @@ runtime.
 
 ## Usage
 
-On JDK11 and aboge, you must start your application with JVM option
+On JDK11 and above, you must start your application with JVM option
 `-Djdk.attach.allowAttachSelf`, otherwise the agent will not be able to
 dynamically attach to the running process.
 
