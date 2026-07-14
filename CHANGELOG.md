@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.5.0 (2026-07-14)
+
+- [#15](https://github.com/clojure-goes-fast/clj-memory-meter/issues/15): Add
+  `measure-list`, `measure-map`, `measure-transposed-maps`.
+
 ### 0.4.0 (2025-02-18)
 
 - Add support for [memory
@@ -26,7 +31,7 @@
 
 ### 0.2.0 (2022-07-27)
 
-- [#4](https://github.com/clojure-goes-fast/clj-memory-meter/issues/5): Switch
+- [#5](https://github.com/clojure-goes-fast/clj-memory-meter/issues/5): Switch
   JAMM dependency to a custom 0.4.0 build that uses Unsafe instead of reflection
   when run in JDK 17+.
 
