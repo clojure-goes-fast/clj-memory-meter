@@ -168,3 +168,43 @@
 
 #_(measure (vec (repeat 100 "hello")) :debug true)
 #_(measure (object-array (repeatedly 1000 (fn [] (String. "foobarbaz")))) :bytes true)
+
+(defn measure-list
+  "Measure each item in `lst` individually and return a list of maps that contain
+  the original value and its size in bytes. Note that if multiple items contain
+  references to a shared object, its size will be counted multiple times.
+
+  :bytes - if true, return a number of bytes instead of a string
+  :sort - sort the items from larger to smaller"
+  [lst & {:keys [bytes sort]}]
+  (cond->> lst
+    true (mapv (fn [x] {:x x, :size (measure x :bytes true)}))
+    sort (sort-by :size >)
+    (not bytes) (mapv #(update % :size convert-to-human-readable))))
+
+(defn measure-map
+  "Measure each value in `amap` individually and return a list of maps that
+  contain the original key and value and the value size in bytes. Note that if
+  multiple items contain references to a shared object, its size will be counted
+  multiple times.
+
+  :bytes - if true, return a number of bytes instead of a string"
+  [amap & {:keys [bytes]}]
+  (cond->> amap
+    true (mapv (fn [[k v]] {:k k, :v v, :size (measure v :bytes true)}))
+    true (sort-by :size >)
+    (not bytes) (mapv (fn [m] (update m :size convert-to-human-readable)))))
+
+(defn measure-transposed-maps
+  "Given a list of maps, group all values in them by their key, and then measure
+  each group separately. Note that if multiple items contain references to a
+  shared object, its size will be counted multiple times.
+
+  :bytes - if true, return a number of bytes instead of a string"
+  [list-of-maps & {:keys [bytes]}]
+  (cond->> (distinct (mapcat keys list-of-maps))
+    true (mapv (fn [k]
+                 (let [vs (vec (keep #(get % k) list-of-maps))]
+                   {:k k, :vals vs, :size (measure vs :bytes true)})))
+    true (sort-by :size >)
+    (not bytes) (mapv (fn [m] (update m :size convert-to-human-readable)))))
